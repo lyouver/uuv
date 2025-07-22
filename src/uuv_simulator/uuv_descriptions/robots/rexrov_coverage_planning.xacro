@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!-- 
+  RexROV model specifically configured for coverage path planning missions
+  Features:
+  - RGB camera for visual mapping
+  - Depth camera for 3D environment mapping
+  - Optimized sensor placement for coverage tasks
+-->
+
+<robot name="rexrov_coverage" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+  <xacro:arg name="debug" default="0"/>
+  <xacro:arg name="namespace" default="rexrov"/>
+  <xacro:arg name="inertial_reference_frame" default="world"/>
+  
+  <!-- Include the ROV macro file -->
+  <xacro:include filename="$(find uuv_descriptions)/urdf/rexrov_base.xacro"/>
+  <xacro:include filename="$(find uuv_descriptions)/urdf/rexrov.gazebo.xacro"/>
+
+  <!-- Create the rexrov -->
+  <xacro:rexrov_base
+    namespace="$(arg namespace)"
+    inertial_reference_frame="$(arg inertial_reference_frame)">
+    <!-- The underwater object plugin is given as an input block parameter to
+     allow the addition of external models of manipulator units -->
+    <gazebo>
+      <plugin name="uuv_plugin" filename="libuuv_underwater_object_ros_plugin.so">
+        <fluid_density>1028.0</fluid_density>
+        <flow_velocity_topic>hydrodynamics/current_velocity</flow_velocity_topic>
+        <debug>$(arg debug)</debug>
+        <!-- Adding the hydrodynamic and hydrostatic parameters for the vehicle-->
+        <xacro:rexrov_hydro_model namespace="$(arg namespace)"/>
+      </plugin>
+    </gazebo>
+  </xacro:rexrov_base>
+
+  <!-- =================== SENSORS FOR COVERAGE PLANNING =================== -->
+  
+  <!-- Main forward-looking RGB camera for visual mapping -->
+  <xacro:underwater_camera_plugin_macro
+    namespace="${namespace}"
+    suffix="_main"
+    parent_link="${namespace}/base_link"
+    topic="camera_main"
+    mass="0.2"
+    update_rate="30"
+    hfov="1.5708"
+    width="1024"
+    height="768"
+    stddev="0.02">
+    <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
+    <origin xyz="1.2 0 0.3" rpy="0 0.3 0"/>
+  </xacro:underwater_camera_plugin_macro>
+
+  <!-- Downward-looking camera for seafloor mapping -->
+  <xacro:underwater_camera_plugin_macro
+    namespace="${namespace}"
+    suffix="_down"
+    parent_link="${namespace}/base_link"
+    topic="camera_down"
+    mass="0.15"
+    update_rate="20"
+    hfov="1.2217"
+    width="640"
+    height="480"
+    stddev="0.02">
+    <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
+    <origin xyz="0.5 0 -0.8" rpy="0 1.5708 0"/>
+  </xacro:underwater_camera_plugin_macro>
+
+  <!-- Wide-angle camera for better coverage -->
+  <xacro:wideangle_camera 
+    namespace="${namespace}" 
+    parent_link="${namespace}/base_link" 
+    suffix="_wide">
+    <origin xyz="1.0 0 0.5" rpy="0 0 0"/>
+  </xacro:wideangle_camera>
+
+  <!-- =================== NAVIGATION SENSORS =================== -->
+  
+  <!-- DVL for velocity measurement -->
+  <xacro:default_dvl_macro
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    inertial_reference_frame="${inertial_reference_frame}">
+    <origin xyz="-1.4 0 -0.312" rpy="0 ${0.5*pi} 0"/>
+  </xacro:default_dvl_macro>
+
+  <!-- IMU for orientation -->
+  <xacro:default_imu_macro
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    inertial_reference_frame="${inertial_reference_frame}">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:default_imu_macro>
+
+  <!-- Pressure sensor for depth -->
+  <xacro:default_pressure_macro 
+    namespace="${namespace}" 
+    parent_link="${namespace}/base_link">
+    <origin xyz="-1.32 0.5 0.85" rpy="0 0 0"/>
+  </xacro:default_pressure_macro>
+
+  <!-- GPS for surface operations -->
+  <xacro:default_gps namespace="${namespace}" parent_link="${namespace}/base_link" />
+
+  <!-- Pose 3D sensor for ground truth -->
+  <xacro:default_pose_3d_macro
+    namespace="${namespace}"
+    parent_link="${namespace}/base_link"
+    inertial_reference_frame="${inertial_reference_frame}" />
+
+  <!-- Joint state publisher plugin -->
+  <xacro:default_joint_state_publisher namespace="$(arg namespace)" update_rate="50"/>
+
+</robot> 

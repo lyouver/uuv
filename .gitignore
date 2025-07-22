@@ -1,0 +1,53 @@
+# Catkin workspace ignore patterns
+build/
+devel/
+logs/
+.catkin_tools/
+.catkin_workspace
+
+# Nested git repositories - exclude these
+src/uuv_simulator/.git
+src/underwater_coverage_planning/.git
+src/uuv_plume_simulator/.git
+src/roboticsgroup_gazebo_plugins/.git
+src/coverage_path_planner/.git
+roboticsgroup_gazebo_plugins/.git
+
+# Common temporary files
+*~
+*.swp
+*.swo
+*.pyc
+*.pyo
+__pycache__/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.launch.xml
+
+# Compiled binaries
+*.so
+*.a
+*.dylib
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# PDF files that are generated
+*.pdf
+
+# Specific files to ignore
+=1.20
+frames.gv
+frames.pdf
+compact_underwater_terrain_modified.world
+.kiro/ 
